@@ -71,56 +71,117 @@ public class BrowseNIH implements InitializingBean {
 //
     }
 
-    public List<NIHNewModel> scrape(String link) throws InterruptedException, IOException, AWTException {
+    public void scrape(String link) throws InterruptedException, IOException, AWTException {
+
         JavascriptExecutor jse = (JavascriptExecutor) driver;
 //        WebDriverWait wait = new WebDriverWait(driver,10);
 //        NIHController nihController = new NIHController();
 
-        driver.get(link);
-        System.out.println("RUNNING " + link);
+        String[] alphabet = {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"};
 
-        WebElement inputLastName = driver.findElementById("ContentPlaceHolder_txtLastName");
-        jse.executeScript("arguments[0].setAttribute('value', 'aa')", inputLastName);
-        WebElement searchButton = driver.findElementById("ContentPlaceHolder_btnSearchName");
-        jse.executeScript("arguments[0].scrollIntoView();", searchButton);
-        searchButton.click();
+        for (int g = 0; g < (alphabet.length - 1); g++) {
+            for (int k = 0; k < (alphabet.length - 1); k++) {
 
-        Thread.sleep(10000);
+                String searchText = alphabet[g] + alphabet[k];
+                System.out.println("Searching : " + searchText);
 
-        WebElement tableSize = driver.findElementById("ContentPlaceHolder_ddlPageSize");
-        tableSize.click();
-        tableSize.findElements(By.tagName("option")).get(9).click();
+                driver.get(link);
+                System.out.println("RUNNING " + link);
 
-        Thread.sleep(10000);
+                WebElement inputLastName = driver.findElementById("ContentPlaceHolder_txtLastName");
+                jse.executeScript("arguments[0].setAttribute('value', '" + searchText + "')", inputLastName);
+                WebElement searchButton = driver.findElementById("ContentPlaceHolder_btnSearchName");
+                jse.executeScript("arguments[0].scrollIntoView();", searchButton);
+                searchButton.click();
 
-        List<String> dataUrls = new ArrayList<>();
-        int i = 1;
-        WebElement pageNumberRow = driver.findElementByXPath("/html/body/div[1]/div[3]/div[1]/table/tbody/tr/td/form/table/tbody/tr[3]/td/table/tbody/tr[1]/td/table/tbody/tr[4]/td/div/table/tbody/tr[3]/td/div/table/tbody/tr[1]/td/table/tbody/tr");
-//        for (WebElement td : pageNumberRow.findElements(By.tagName("td"))) {
-        List<WebElement> td = pageNumberRow.findElements(By.tagName("td"));
-        System.out.println(td.size() + " pages");
-        for (int j = 0; j < td.size(); j++) {
-
-            WebElement pageNumbers = driver.findElementByXPath("/html/body/div[1]/div[3]/div[1]/table/tbody/tr/td/form/table/tbody/tr[3]/td/table/tbody/tr[1]/td/table/tbody/tr[4]/td/div/table/tbody/tr[3]/td/div/table/tbody/tr[1]/td/table/tbody/tr");
-            if (pageNumbers.findElements(By.tagName("td")).get(j).getAttribute("innerText").equalsIgnoreCase(Integer.toString(j + 1))) {
-                pageNumbers.findElements(By.tagName("td")).get(j).click();
-                System.out.println("Clicked on : " + (j + 1));
                 Thread.sleep(10000);
-            }
+
+                try {
+                    WebElement tableSize = driver.findElementById("ContentPlaceHolder_ddlPageSize");
+                    tableSize.click();
+                    tableSize.findElements(By.tagName("option")).get(9).click();
+
+                    Thread.sleep(10000);
+
+                    List<String> dataUrls = new ArrayList<>();
+                    int i = 1;
+                    try {
+                        WebElement pageNumberRow = driver.findElementByXPath("/html/body/div[1]/div[3]/div[1]/table/tbody/tr/td/form/table/tbody/tr[3]/td/table/tbody/tr[1]/td/table/tbody/tr[4]/td/div/table/tbody/tr[3]/td/div/table/tbody/tr[1]/td/table/tbody/tr");
+//        for (WebElement td : pageNumberRow.findElements(By.tagName("td"))) {
+                        List<WebElement> td = pageNumberRow.findElements(By.tagName("td"));
+                        System.out.println(td.size() + " pages");
+                        for (int j = 0; j < td.size(); j++) {
+
+                            WebElement pageNumbers = driver.findElementByXPath("/html/body/div[1]/div[3]/div[1]/table/tbody/tr/td/form/table/tbody/tr[3]/td/table/tbody/tr[1]/td/table/tbody/tr[4]/td/div/table/tbody/tr[3]/td/div/table/tbody/tr[1]/td/table/tbody/tr");
+                            if (pageNumbers.findElements(By.tagName("td")).get(j).getAttribute("innerText").equalsIgnoreCase(Integer.toString(j + 1))) {
+                                pageNumbers.findElements(By.tagName("td")).get(j).click();
+                                System.out.println("Clicked on : " + (j + 1));
+                                Thread.sleep(10000);
+                            }
+
 
 //             WebElement dataTable = driver.findElementById("ContentPlaceHolder_gvSearchResults");
+                            dataUrls = gettingDataUrls();
+
+                        }
+                    } catch (Exception d) {
+                        System.out.println("***** No Page Number Row..");
+                        dataUrls = gettingDataUrls();
+                    }
+
+                    if (!dataUrls.isEmpty()) {
+                        gettingDataFromLinks(dataUrls);
+                        System.out.println("** One Set Sent to Database Completely..");
+                    }
+//        int z = 1;
+//        for (NIHNewModel nih : nihs) {
+//            System.out.println("***************************");
+//            System.out.println(z);
+//            System.out.println(nih.getLegal_name());
+//            System.out.println(nih.getPreffered_name());
+//            System.out.println(nih.getEmail());
+//            System.out.println(nih.getLocation());
+//            System.out.println(nih.getMail_stop());
+//            System.out.println(nih.getPhone());
+//            System.out.println(nih.getFax());
+//            System.out.println(nih.getIc());
+//            System.out.println(nih.getOrganization());
+//            System.out.println(nih.getClassification());
+//            System.out.println(nih.getTty());
+//            System.out.println("***************************");
+//            z++;
+//
+//        }
+
+                } catch (Exception c) {
+                    System.out.println("***** No Data to Read..");
+                    continue;
+                }
+
+            }
+
+        }
+
+
+    }
+
+    private List<String> gettingDataUrls() {
+
+        List<String> dataUrls = new ArrayList<>();
+        try {
             WebElement dataTable = driver.findElementByXPath("/html/body/div[1]/div[3]/div[1]/table/tbody/tr/td/form/table/tbody/tr[3]/td/table/tbody/tr[1]/td/table/tbody/tr[4]/td/div/table/tbody/tr[3]/td/div/table/tbody");
             for (WebElement tr : dataTable.findElements(By.tagName("tr"))) {//
                 String dataRow = tr.getAttribute("class");
                 if (dataRow.equalsIgnoreCase("GVRow") || dataRow.equalsIgnoreCase("GVAltRow")) {
-                  try {
-                      if (nihRepository.existsByPhone(tr.findElements(By.tagName("td")).get(4).getAttribute("innerText"))) {
-                          System.out.println("Duplicate Skipped..");
-                          continue;
-                      }
-                  }catch (Exception n){
-                      System.out.println("No Data in DataBase..");
-                  }
+                    try {
+                        String tele = tr.findElements(By.tagName("td")).get(4).getAttribute("innerText");
+                        if (!tele.equalsIgnoreCase("") || nihRepository.existsByPhone(tele)) {
+                            System.out.println("***** Duplicate Skipped..");
+                            continue;
+                        }
+                    } catch (Exception n) {
+                        System.out.println("***** No Data in DataBase..");
+                    }
 //                String dataLink = tr.findElement(By.tagName("a")).getAttribute("href");
                     dataUrls.add(tr.findElement(By.tagName("a")).getAttribute("href"));
 
@@ -130,32 +191,11 @@ public class BrowseNIH implements InitializingBean {
             for (String dataUrl : dataUrls) {
                 System.out.println(dataUrl);
             }
-
+        }catch (Exception n){
+            System.out.println("No Data to Write..");
         }
 
-        List<NIHNewModel> nihs = gettingDataFromLinks(dataUrls);
-        int z = 1;
-        for (NIHNewModel nih : nihs) {
-            System.out.println("***************************");
-            System.out.println(z);
-            System.out.println(nih.getLegal_name());
-            System.out.println(nih.getPreffered_name());
-            System.out.println(nih.getEmail());
-            System.out.println(nih.getLocation());
-            System.out.println(nih.getMail_stop());
-            System.out.println(nih.getPhone());
-            System.out.println(nih.getFax());
-            System.out.println(nih.getIc());
-            System.out.println(nih.getOrganization());
-            System.out.println(nih.getClassification());
-            System.out.println(nih.getTty());
-            System.out.println("***************************");
-            z++;
-
-        }
-
-
-        return nihs;
+        return dataUrls;
 
     }
 
@@ -199,7 +239,7 @@ public class BrowseNIH implements InitializingBean {
 
             driver.get(dataUrl);
             try {
-                Thread.sleep(2500);
+                Thread.sleep(5000);
             } catch (InterruptedException e) {
                 System.out.println("Thread Sleep Not Working..");
             }
@@ -242,6 +282,7 @@ public class BrowseNIH implements InitializingBean {
             try {
                 nihRepository.save(nih);
             } catch (Exception e) {
+                System.out.println("Problem in sending data to database..");
                 e.printStackTrace();
             }
 
@@ -251,99 +292,7 @@ public class BrowseNIH implements InitializingBean {
 
     }
 
-//    private static void createXlsFile(List<SiteRow> siteRowList, String sheetName, Workbook workbook, boolean extra) {
-//        CreationHelper createHelper = workbook.getCreationHelper();
-//        Sheet sheet = workbook.createSheet(sheetName);
-//        Font headerFont = workbook.createFont();
-//        headerFont.setBold(true);
-//        headerFont.setFontHeightInPoints((short) 14);
-//        headerFont.setColor(IndexedColors.RED.getIndex());
 //
-//        CellStyle headerCellStyle = workbook.createCellStyle();
-//        headerCellStyle.setFont(headerFont);
-//
-//        Row headerRow = sheet.createRow(0);
-//
-//        ArrayList<String> list = new ArrayList();
-//
-//        for (int i = 0; i < 6; i++) {
-//            list.add("Descrizione" + (i + 1));
-//        }
-//
-//        list.add("Tiposcommessa1");
-//        list.add("Tiposcommessa2");
-//        list.add("Data");
-//        list.add("Giorno");
-//        list.add("Orario");
-//        list.add("Squadra 1");
-//        list.add("Squadra 2");
-//        list.add("Uno");
-//        list.add("Uno Links");
-//        list.add("x");
-//        list.add("x Links");
-//        list.add("Due");
-//        list.add("Due Links");
-//        if (extra) {
-//            list.add("Under 2.5");
-//            list.add("Over 2.5");
-//        }
-//
-//        // Create cells
-//        for (int i = 0; i < list.size(); i++) {
-//            Cell cell = headerRow.createCell(i);
-//            cell.setCellValue(list.get(i));
-//            cell.setCellStyle(headerCellStyle);
-//        }
-//
-//
-//        // Create Cell Style for formatting Date
-//        CellStyle dateCellStyle = workbook.createCellStyle();
-//        dateCellStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd/MM/yyyy"));
-//
-//        // Create Other rows and cells with employees data
-//        int rowNum = 1;
-//        int max = 6;
-//        for (SiteRow siteRow : siteRowList) {
-//            Row row = sheet.createRow(rowNum++);
-//            int i = 0;
-//            if (checkEmptyRow(siteRow)) {
-//                row.createCell(0).setCellValue(siteRow.getDescrizione_1());
-//                row.createCell(1).setCellValue(siteRow.getDescrizione_2());
-//                row.createCell(2).setCellValue(siteRow.getDescrizione_3());
-//                row.createCell(max).setCellValue(siteRow.getTipo_Scommessa_1());
-//                row.createCell(max + 1).setCellValue(siteRow.getTipo_Scommessa_2());
-//                row.createCell(max + 1 + 1).setCellValue(siteRow.getDate());
-//                row.createCell(max + 1 + 2).setCellValue(siteRow.getGiorno());
-//                row.createCell(max + 1 + 3).setCellValue(siteRow.getOrario());
-//                row.createCell(max + 1 + 4).setCellValue(siteRow.getSquadra_1());
-//                row.createCell(max + 1 + 5).setCellValue(siteRow.getSquadra_2());
-//                row.createCell(max + 1 + 6).setCellValue(siteRow.getUnoListAsString());
-//                row.createCell(max + 1 + 7).setCellValue(siteRow.getUnoLinkListAsString());
-//                row.createCell(max + 1 + 8).setCellValue(siteRow.getXListAsString());
-//                row.createCell(max + 1 + 9).setCellValue(siteRow.getXLinkListAsString());
-//                row.createCell(max + 1 + 10).setCellValue(siteRow.getDueListAsString());
-//                row.createCell(max + 1 + 11).setCellValue(siteRow.getDueLinkListAsString());
-//                row.createCell(max + 1 + 12).setCellValue(siteRow.getPercListAsString());
-//                if (extra) {
-//                    row.createCell(max + 1 + 12).setCellValue(siteRow.getExtra1AsString());
-//                    row.createCell(max + 1 + 13).setCellValue(siteRow.getExtra2AsString());
-//                }
-//            }
-//        }
-//
-//        for (int i = 0; i < list.size(); i++) {
-//            sheet.autoSizeColumn(i);
-//        }
-//
-//    }
-
-//    private static boolean checkEmptyRow(SiteRow siteRow) {
-//        if (siteRow.getDate() == null && siteRow.getSquadra_1() == null && siteRow.getTipo_Scommessa_1() == null) {
-//            return false;
-//        } else {
-//            return true;
-//        }
-//    }
 
     private void firstAttempt() {
 //
@@ -402,7 +351,7 @@ public class BrowseNIH implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        Thread.sleep(2000);
+//        Thread.sleep(2000);
         this.initialise();
     }
 }
