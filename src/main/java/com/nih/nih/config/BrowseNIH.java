@@ -190,7 +190,7 @@ public class BrowseNIH implements InitializingBean {
                         }
                     } catch (Exception d) {
                         System.out.println("***** No Page Number Row..");
-//                        dataUrls = gettingDataUrls();
+                        gettingDataUrls();
                     }
 
 //                    if (!dataUrls.isEmpty()) {
@@ -237,12 +237,16 @@ public class BrowseNIH implements InitializingBean {
             for (WebElement tr : dataTable.findElements(By.tagName("tr"))) {//
                 String dataRow = tr.getAttribute("class");
                 if (dataRow.equalsIgnoreCase("GVRow") || dataRow.equalsIgnoreCase("GVAltRow")) {
-                    try {
+
                         String tele = tr.findElements(By.tagName("td")).get(4).getAttribute("innerText");
+                    try {
                         if (!tele.equalsIgnoreCase("") || nihRepository.existsByPhone(tele)) {
                             System.out.println("***** Duplicate Skipped..");
                             continue;
                         }
+                    } catch (Exception n) {
+                        System.out.println("***** No Data in DataBase..");
+                    }
                         String prefeerdName = tr.findElements(By.tagName("td")).get(0).getAttribute("innerText");
                         String email = tr.findElements(By.tagName("td")).get(3).getAttribute("innerText");
                         String ic = tr.findElements(By.tagName("td")).get(1).getAttribute("innerText");
@@ -261,9 +265,6 @@ public class BrowseNIH implements InitializingBean {
                             System.out.println("Error Occured while Sending Data..");
                         }
 
-                    } catch (Exception n) {
-                        System.out.println("***** No Data in DataBase..");
-                    }
 //                String dataLink = tr.findElement(By.tagName("a")).getAttribute("href");
 //                    dataUrls.add(tr.findElement(By.tagName("a")).getAttribute("href"));
 
