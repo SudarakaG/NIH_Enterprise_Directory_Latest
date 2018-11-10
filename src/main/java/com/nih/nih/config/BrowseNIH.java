@@ -84,21 +84,29 @@ public class BrowseNIH implements InitializingBean {
 
         String[] alphabet = {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"};
 
-        for (int g = 0; g < (alphabet.length - 1); g++) {
-            for (int k = 0; k < (alphabet.length - 1); k++) {
+        for (int g = 0; g < (alphabet.length); g++) {
+            for (int k = 0; k < (alphabet.length); k++) {
 
                 String searchText = alphabet[g] + alphabet[k];
                 System.out.println("Searching : " + searchText);
 //        String searchText = "aa";
 
-                driver.get(link);
-                System.out.println("RUNNING " + link);
+                try {
+                    driver.get(link);
+                    System.out.println("RUNNING " + link);
 
-                WebElement inputLastName = driver.findElementById("ContentPlaceHolder_txtLastName");
-                jse.executeScript("arguments[0].setAttribute('value', '" + searchText + "')", inputLastName);
-                WebElement searchButton = driver.findElementById("ContentPlaceHolder_btnSearchName");
-                jse.executeScript("arguments[0].scrollIntoView();", searchButton);
-                searchButton.click();
+                    WebElement inputLastName = driver.findElementById("ContentPlaceHolder_txtLastName");
+                    jse.executeScript("arguments[0].setAttribute('value', '" + searchText + "')", inputLastName);
+                    WebElement searchButton = driver.findElementById("ContentPlaceHolder_btnSearchName");
+                    jse.executeScript("arguments[0].scrollIntoView();", searchButton);
+                    searchButton.click();
+                }catch (Exception e){
+                    System.out.println("Page Not Loaded..");
+                    driver.navigate().refresh();
+                    Thread.sleep(10000);
+                    k = k-1;
+                    continue;
+                }
 
                 Thread.sleep(20000);
 
@@ -240,7 +248,7 @@ public class BrowseNIH implements InitializingBean {
 
                         String tele = tr.findElements(By.tagName("td")).get(4).getAttribute("innerText");
                     try {
-                        if (!tele.equalsIgnoreCase("") || nihRepository.existsByPhone(tele)) {
+                        if (!tele.equalsIgnoreCase("") && nihRepository.existsByPhone(tele)) {
                             System.out.println("***** Duplicate Skipped..");
                             continue;
                         }
